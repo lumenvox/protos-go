@@ -42,6 +42,14 @@ const (
 	ReportingAPIService_ImportAnalysisSet_FullMethodName               = "/lumenvox.api.ReportingAPIService/ImportAnalysisSet"
 	ReportingAPIService_DiagnosticsCheck_FullMethodName                = "/lumenvox.api.ReportingAPIService/DiagnosticsCheck"
 	ReportingAPIService_EvaluateTranscription_FullMethodName           = "/lumenvox.api.ReportingAPIService/EvaluateTranscription"
+	ReportingAPIService_CreatePostProcessingProfile_FullMethodName     = "/lumenvox.api.ReportingAPIService/CreatePostProcessingProfile"
+	ReportingAPIService_GetPostProcessingProfile_FullMethodName        = "/lumenvox.api.ReportingAPIService/GetPostProcessingProfile"
+	ReportingAPIService_GetPostProcessingProfiles_FullMethodName       = "/lumenvox.api.ReportingAPIService/GetPostProcessingProfiles"
+	ReportingAPIService_UpdatePostProcessingProfile_FullMethodName     = "/lumenvox.api.ReportingAPIService/UpdatePostProcessingProfile"
+	ReportingAPIService_DeletePostProcessingProfile_FullMethodName     = "/lumenvox.api.ReportingAPIService/DeletePostProcessingProfile"
+	ReportingAPIService_ExportPostProcessingProfile_FullMethodName     = "/lumenvox.api.ReportingAPIService/ExportPostProcessingProfile"
+	ReportingAPIService_ImportPostProcessingProfile_FullMethodName     = "/lumenvox.api.ReportingAPIService/ImportPostProcessingProfile"
+	ReportingAPIService_GetPostProcessingProfileHistory_FullMethodName = "/lumenvox.api.ReportingAPIService/GetPostProcessingProfileHistory"
 )
 
 // ReportingAPIServiceClient is the client API for ReportingAPIService service.
@@ -107,6 +115,137 @@ type ReportingAPIServiceClient interface {
 	DiagnosticsCheck(ctx context.Context, in *DiagnosticsCheckRequest, opts ...grpc.CallOption) (*DiagnosticsCheckResponse, error)
 	// Performs fuzzy matching on machine and human transcribed texts
 	EvaluateTranscription(ctx context.Context, in *EvaluateTranscriptionRequest, opts ...grpc.CallOption) (*EvaluateTranscriptionResponse, error)
+	// Creates a new Post-Processing Profile within a deployment and returns its server-generated GUID.
+	//
+	// Request:
+	// - CreatePostProcessingProfileRequest:
+	//   - Includes data needed to define the profile (for example: deployment_id, name, and operations).
+	//   - Operations are applied in ascending order of their index; index values should be unique within the profile.
+	//
+	// Response:
+	// - CreatePostProcessingProfileResponse:
+	//   - Contains the GUID (UUID) of the newly created profile (profile_id).
+	//
+	// Behavior:
+	// - The profile name should be unique within the specified deployment.
+	// - Implementation will validate the operations list (e.g., non-empty pattern strings).
+	//
+	// Errors:
+	// - INVALID_ARGUMENT: Malformed request (e.g., missing required fields, invalid operations).
+	// - NOT_FOUND: Specified deployment does not exist.
+	// - ALREADY_EXISTS: A profile with the same name already exists within the deployment.
+	CreatePostProcessingProfile(ctx context.Context, in *CreatePostProcessingProfileRequest, opts ...grpc.CallOption) (*CreatePostProcessingProfileResponse, error)
+	// Retrieves Post-Processing Profile, specified by id.
+	//
+	// Request:
+	// - GetPostProcessingProfileRequest:
+	//   - Contains requesting profile ID (profile_id).
+	//
+	// Response:
+	// - GetPostProcessingProfilesResponse:
+	//   - Contains Post-Processing Profile message.
+	//
+	// Errors:
+	// - INVALID_ARGUMENT: Malformed request (e.g., invalid profile_id UUID string).
+	// - NOT_FOUND: Specified profile_id does not exist.
+	GetPostProcessingProfile(ctx context.Context, in *GetPostProcessingProfileRequest, opts ...grpc.CallOption) (*GetPostProcessingProfileResponse, error)
+	// Retrieves Post-Processing Profiles, filtered by criteria in the request.
+	//
+	// Request:
+	// - GetPostProcessingProfilesRequest:
+	//
+	// Response:
+	// - GetPostProcessingProfilesResponse:
+	//   - Contains a list of matching Post-Processing Profile(s).
+	//
+	// Errors:
+	// - INVALID_ARGUMENT: Malformed request (e.g., invalid UUID string).
+	GetPostProcessingProfiles(ctx context.Context, in *GetPostProcessingProfilesRequest, opts ...grpc.CallOption) (*GetPostProcessingProfilesResponse, error)
+	// Updates specified Post-Processing Profile.
+	//
+	// Request:
+	// - UpdatePostProcessingProfileRequest:
+	//   - Contains profile_id of updating profile and new list of RegexOperations
+	//
+	// Response:
+	// - UpdatePostProcessingProfileResponse:
+	//   - Contains the updated profile
+	//
+	// Behavior:
+	// - Server-managed fields (profile_id, created_at) are immutable;
+	// - A successful update should increment the profile version.
+	//
+	// Errors:
+	// - INVALID_ARGUMENT: Malformed request (e.g., missing profile identifier, invalid operations).
+	// - NOT_FOUND: Specified profile do not exist.
+	UpdatePostProcessingProfile(ctx context.Context, in *UpdatePostProcessingProfileRequest, opts ...grpc.CallOption) (*UpdatePostProcessingProfileResponse, error)
+	// Deletes a Post-Processing Profile identified in the request.
+	//
+	// Request:
+	// - DeletePostProcessingProfileRequest:
+	//   - Identifies the target profile to delete by profile_id.
+	//
+	// Response:
+	// - DeletePostProcessingProfileResponse:
+	//   - Confirms the deletion and may include later additional metadata about the deleted profile.
+	//
+	// Behavior:
+	// - The operation removes the specified profile from use.
+	//
+	// Errors:
+	// - INVALID_ARGUMENT: Malformed request (e.g., missing required identifier).
+	// - NOT_FOUND: The specified profile does not exist or is already deleted.
+	DeletePostProcessingProfile(ctx context.Context, in *DeletePostProcessingProfileRequest, opts ...grpc.CallOption) (*DeletePostProcessingProfileResponse, error)
+	// Exports a Post-Processing Profile into a portable representation.
+	//
+	// Request:
+	// - ExportPostProcessingProfileRequest:
+	//   - Identifies which profile to export.
+	//
+	// Response:
+	// - ExportPostProcessingProfileResponse:
+	//   - Contains the serialized/portable profile definition suitable for backup, migration, or import.
+	//
+	// Behavior:
+	//   - The exported payload should include all data necessary to faithfully recreate the profile,
+	//     including name, operations (with ordering), and versioning history.
+	//
+	// Errors:
+	// - INVALID_ARGUMENT: Malformed request (e.g., missing identifiers).
+	// - NOT_FOUND: The specified profile (or version) does not exist.
+	ExportPostProcessingProfile(ctx context.Context, in *ExportPostProcessingProfileRequest, opts ...grpc.CallOption) (*ExportPostProcessingProfileResponse, error)
+	// Imports a Post-Processing Profile from a portable representation.
+	//
+	// Request:
+	// - ImportPostProcessingProfileRequest:
+	//   - Provides the serialized/portable profile definition to import.
+	//
+	// Response:
+	// - ImportPostProcessingProfileResponse:
+	//   - Returns identifiers for the imported profile (profile_id).
+	//
+	// Errors:
+	// - INVALID_ARGUMENT: Malformed payload or validation errors.
+	// - ALREADY_EXISTS: Conflict with an existing profile when overwrite is not allowed.
+	// - NOT_FOUND: Referenced deployment does not exist.
+	ImportPostProcessingProfile(ctx context.Context, in *ImportPostProcessingProfileRequest, opts ...grpc.CallOption) (*ImportPostProcessingProfileResponse, error)
+	// Retrieves the full version history of a Post-Processing Profile.
+	//
+	// Request:
+	// - GetPostProcessingProfileHistoryRequest:
+	//   - Identifies the target profile by profile_id
+	//
+	// Response:
+	// - GetPostProcessingProfileHistoryResponse:
+	//   - Contains an ordered collection of profile versions (ascending by version number)
+	//
+	// Behavior:
+	// - Returned versions should reflect the exact historical state, including timestamps.
+	//
+	// Errors:
+	// - INVALID_ARGUMENT: Malformed request.
+	// - NOT_FOUND: The specified profile does not exist.
+	GetPostProcessingProfileHistory(ctx context.Context, in *GetPostProcessingProfileHistoryRequest, opts ...grpc.CallOption) (*GetPostProcessingProfileHistoryResponse, error)
 }
 
 type reportingAPIServiceClient struct {
@@ -388,6 +527,86 @@ func (c *reportingAPIServiceClient) EvaluateTranscription(ctx context.Context, i
 	return out, nil
 }
 
+func (c *reportingAPIServiceClient) CreatePostProcessingProfile(ctx context.Context, in *CreatePostProcessingProfileRequest, opts ...grpc.CallOption) (*CreatePostProcessingProfileResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(CreatePostProcessingProfileResponse)
+	err := c.cc.Invoke(ctx, ReportingAPIService_CreatePostProcessingProfile_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *reportingAPIServiceClient) GetPostProcessingProfile(ctx context.Context, in *GetPostProcessingProfileRequest, opts ...grpc.CallOption) (*GetPostProcessingProfileResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetPostProcessingProfileResponse)
+	err := c.cc.Invoke(ctx, ReportingAPIService_GetPostProcessingProfile_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *reportingAPIServiceClient) GetPostProcessingProfiles(ctx context.Context, in *GetPostProcessingProfilesRequest, opts ...grpc.CallOption) (*GetPostProcessingProfilesResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetPostProcessingProfilesResponse)
+	err := c.cc.Invoke(ctx, ReportingAPIService_GetPostProcessingProfiles_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *reportingAPIServiceClient) UpdatePostProcessingProfile(ctx context.Context, in *UpdatePostProcessingProfileRequest, opts ...grpc.CallOption) (*UpdatePostProcessingProfileResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(UpdatePostProcessingProfileResponse)
+	err := c.cc.Invoke(ctx, ReportingAPIService_UpdatePostProcessingProfile_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *reportingAPIServiceClient) DeletePostProcessingProfile(ctx context.Context, in *DeletePostProcessingProfileRequest, opts ...grpc.CallOption) (*DeletePostProcessingProfileResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(DeletePostProcessingProfileResponse)
+	err := c.cc.Invoke(ctx, ReportingAPIService_DeletePostProcessingProfile_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *reportingAPIServiceClient) ExportPostProcessingProfile(ctx context.Context, in *ExportPostProcessingProfileRequest, opts ...grpc.CallOption) (*ExportPostProcessingProfileResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ExportPostProcessingProfileResponse)
+	err := c.cc.Invoke(ctx, ReportingAPIService_ExportPostProcessingProfile_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *reportingAPIServiceClient) ImportPostProcessingProfile(ctx context.Context, in *ImportPostProcessingProfileRequest, opts ...grpc.CallOption) (*ImportPostProcessingProfileResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ImportPostProcessingProfileResponse)
+	err := c.cc.Invoke(ctx, ReportingAPIService_ImportPostProcessingProfile_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *reportingAPIServiceClient) GetPostProcessingProfileHistory(ctx context.Context, in *GetPostProcessingProfileHistoryRequest, opts ...grpc.CallOption) (*GetPostProcessingProfileHistoryResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetPostProcessingProfileHistoryResponse)
+	err := c.cc.Invoke(ctx, ReportingAPIService_GetPostProcessingProfileHistory_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // ReportingAPIServiceServer is the server API for ReportingAPIService service.
 // All implementations must embed UnimplementedReportingAPIServiceServer
 // for forward compatibility
@@ -451,6 +670,137 @@ type ReportingAPIServiceServer interface {
 	DiagnosticsCheck(context.Context, *DiagnosticsCheckRequest) (*DiagnosticsCheckResponse, error)
 	// Performs fuzzy matching on machine and human transcribed texts
 	EvaluateTranscription(context.Context, *EvaluateTranscriptionRequest) (*EvaluateTranscriptionResponse, error)
+	// Creates a new Post-Processing Profile within a deployment and returns its server-generated GUID.
+	//
+	// Request:
+	// - CreatePostProcessingProfileRequest:
+	//   - Includes data needed to define the profile (for example: deployment_id, name, and operations).
+	//   - Operations are applied in ascending order of their index; index values should be unique within the profile.
+	//
+	// Response:
+	// - CreatePostProcessingProfileResponse:
+	//   - Contains the GUID (UUID) of the newly created profile (profile_id).
+	//
+	// Behavior:
+	// - The profile name should be unique within the specified deployment.
+	// - Implementation will validate the operations list (e.g., non-empty pattern strings).
+	//
+	// Errors:
+	// - INVALID_ARGUMENT: Malformed request (e.g., missing required fields, invalid operations).
+	// - NOT_FOUND: Specified deployment does not exist.
+	// - ALREADY_EXISTS: A profile with the same name already exists within the deployment.
+	CreatePostProcessingProfile(context.Context, *CreatePostProcessingProfileRequest) (*CreatePostProcessingProfileResponse, error)
+	// Retrieves Post-Processing Profile, specified by id.
+	//
+	// Request:
+	// - GetPostProcessingProfileRequest:
+	//   - Contains requesting profile ID (profile_id).
+	//
+	// Response:
+	// - GetPostProcessingProfilesResponse:
+	//   - Contains Post-Processing Profile message.
+	//
+	// Errors:
+	// - INVALID_ARGUMENT: Malformed request (e.g., invalid profile_id UUID string).
+	// - NOT_FOUND: Specified profile_id does not exist.
+	GetPostProcessingProfile(context.Context, *GetPostProcessingProfileRequest) (*GetPostProcessingProfileResponse, error)
+	// Retrieves Post-Processing Profiles, filtered by criteria in the request.
+	//
+	// Request:
+	// - GetPostProcessingProfilesRequest:
+	//
+	// Response:
+	// - GetPostProcessingProfilesResponse:
+	//   - Contains a list of matching Post-Processing Profile(s).
+	//
+	// Errors:
+	// - INVALID_ARGUMENT: Malformed request (e.g., invalid UUID string).
+	GetPostProcessingProfiles(context.Context, *GetPostProcessingProfilesRequest) (*GetPostProcessingProfilesResponse, error)
+	// Updates specified Post-Processing Profile.
+	//
+	// Request:
+	// - UpdatePostProcessingProfileRequest:
+	//   - Contains profile_id of updating profile and new list of RegexOperations
+	//
+	// Response:
+	// - UpdatePostProcessingProfileResponse:
+	//   - Contains the updated profile
+	//
+	// Behavior:
+	// - Server-managed fields (profile_id, created_at) are immutable;
+	// - A successful update should increment the profile version.
+	//
+	// Errors:
+	// - INVALID_ARGUMENT: Malformed request (e.g., missing profile identifier, invalid operations).
+	// - NOT_FOUND: Specified profile do not exist.
+	UpdatePostProcessingProfile(context.Context, *UpdatePostProcessingProfileRequest) (*UpdatePostProcessingProfileResponse, error)
+	// Deletes a Post-Processing Profile identified in the request.
+	//
+	// Request:
+	// - DeletePostProcessingProfileRequest:
+	//   - Identifies the target profile to delete by profile_id.
+	//
+	// Response:
+	// - DeletePostProcessingProfileResponse:
+	//   - Confirms the deletion and may include later additional metadata about the deleted profile.
+	//
+	// Behavior:
+	// - The operation removes the specified profile from use.
+	//
+	// Errors:
+	// - INVALID_ARGUMENT: Malformed request (e.g., missing required identifier).
+	// - NOT_FOUND: The specified profile does not exist or is already deleted.
+	DeletePostProcessingProfile(context.Context, *DeletePostProcessingProfileRequest) (*DeletePostProcessingProfileResponse, error)
+	// Exports a Post-Processing Profile into a portable representation.
+	//
+	// Request:
+	// - ExportPostProcessingProfileRequest:
+	//   - Identifies which profile to export.
+	//
+	// Response:
+	// - ExportPostProcessingProfileResponse:
+	//   - Contains the serialized/portable profile definition suitable for backup, migration, or import.
+	//
+	// Behavior:
+	//   - The exported payload should include all data necessary to faithfully recreate the profile,
+	//     including name, operations (with ordering), and versioning history.
+	//
+	// Errors:
+	// - INVALID_ARGUMENT: Malformed request (e.g., missing identifiers).
+	// - NOT_FOUND: The specified profile (or version) does not exist.
+	ExportPostProcessingProfile(context.Context, *ExportPostProcessingProfileRequest) (*ExportPostProcessingProfileResponse, error)
+	// Imports a Post-Processing Profile from a portable representation.
+	//
+	// Request:
+	// - ImportPostProcessingProfileRequest:
+	//   - Provides the serialized/portable profile definition to import.
+	//
+	// Response:
+	// - ImportPostProcessingProfileResponse:
+	//   - Returns identifiers for the imported profile (profile_id).
+	//
+	// Errors:
+	// - INVALID_ARGUMENT: Malformed payload or validation errors.
+	// - ALREADY_EXISTS: Conflict with an existing profile when overwrite is not allowed.
+	// - NOT_FOUND: Referenced deployment does not exist.
+	ImportPostProcessingProfile(context.Context, *ImportPostProcessingProfileRequest) (*ImportPostProcessingProfileResponse, error)
+	// Retrieves the full version history of a Post-Processing Profile.
+	//
+	// Request:
+	// - GetPostProcessingProfileHistoryRequest:
+	//   - Identifies the target profile by profile_id
+	//
+	// Response:
+	// - GetPostProcessingProfileHistoryResponse:
+	//   - Contains an ordered collection of profile versions (ascending by version number)
+	//
+	// Behavior:
+	// - Returned versions should reflect the exact historical state, including timestamps.
+	//
+	// Errors:
+	// - INVALID_ARGUMENT: Malformed request.
+	// - NOT_FOUND: The specified profile does not exist.
+	GetPostProcessingProfileHistory(context.Context, *GetPostProcessingProfileHistoryRequest) (*GetPostProcessingProfileHistoryResponse, error)
 	mustEmbedUnimplementedReportingAPIServiceServer()
 }
 
@@ -517,6 +867,30 @@ func (UnimplementedReportingAPIServiceServer) DiagnosticsCheck(context.Context, 
 }
 func (UnimplementedReportingAPIServiceServer) EvaluateTranscription(context.Context, *EvaluateTranscriptionRequest) (*EvaluateTranscriptionResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method EvaluateTranscription not implemented")
+}
+func (UnimplementedReportingAPIServiceServer) CreatePostProcessingProfile(context.Context, *CreatePostProcessingProfileRequest) (*CreatePostProcessingProfileResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method CreatePostProcessingProfile not implemented")
+}
+func (UnimplementedReportingAPIServiceServer) GetPostProcessingProfile(context.Context, *GetPostProcessingProfileRequest) (*GetPostProcessingProfileResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetPostProcessingProfile not implemented")
+}
+func (UnimplementedReportingAPIServiceServer) GetPostProcessingProfiles(context.Context, *GetPostProcessingProfilesRequest) (*GetPostProcessingProfilesResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetPostProcessingProfiles not implemented")
+}
+func (UnimplementedReportingAPIServiceServer) UpdatePostProcessingProfile(context.Context, *UpdatePostProcessingProfileRequest) (*UpdatePostProcessingProfileResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method UpdatePostProcessingProfile not implemented")
+}
+func (UnimplementedReportingAPIServiceServer) DeletePostProcessingProfile(context.Context, *DeletePostProcessingProfileRequest) (*DeletePostProcessingProfileResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method DeletePostProcessingProfile not implemented")
+}
+func (UnimplementedReportingAPIServiceServer) ExportPostProcessingProfile(context.Context, *ExportPostProcessingProfileRequest) (*ExportPostProcessingProfileResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ExportPostProcessingProfile not implemented")
+}
+func (UnimplementedReportingAPIServiceServer) ImportPostProcessingProfile(context.Context, *ImportPostProcessingProfileRequest) (*ImportPostProcessingProfileResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ImportPostProcessingProfile not implemented")
+}
+func (UnimplementedReportingAPIServiceServer) GetPostProcessingProfileHistory(context.Context, *GetPostProcessingProfileHistoryRequest) (*GetPostProcessingProfileHistoryResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetPostProcessingProfileHistory not implemented")
 }
 func (UnimplementedReportingAPIServiceServer) mustEmbedUnimplementedReportingAPIServiceServer() {}
 
@@ -905,6 +1279,150 @@ func _ReportingAPIService_EvaluateTranscription_Handler(srv interface{}, ctx con
 	return interceptor(ctx, in, info, handler)
 }
 
+func _ReportingAPIService_CreatePostProcessingProfile_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CreatePostProcessingProfileRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ReportingAPIServiceServer).CreatePostProcessingProfile(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: ReportingAPIService_CreatePostProcessingProfile_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ReportingAPIServiceServer).CreatePostProcessingProfile(ctx, req.(*CreatePostProcessingProfileRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _ReportingAPIService_GetPostProcessingProfile_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetPostProcessingProfileRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ReportingAPIServiceServer).GetPostProcessingProfile(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: ReportingAPIService_GetPostProcessingProfile_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ReportingAPIServiceServer).GetPostProcessingProfile(ctx, req.(*GetPostProcessingProfileRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _ReportingAPIService_GetPostProcessingProfiles_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetPostProcessingProfilesRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ReportingAPIServiceServer).GetPostProcessingProfiles(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: ReportingAPIService_GetPostProcessingProfiles_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ReportingAPIServiceServer).GetPostProcessingProfiles(ctx, req.(*GetPostProcessingProfilesRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _ReportingAPIService_UpdatePostProcessingProfile_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UpdatePostProcessingProfileRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ReportingAPIServiceServer).UpdatePostProcessingProfile(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: ReportingAPIService_UpdatePostProcessingProfile_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ReportingAPIServiceServer).UpdatePostProcessingProfile(ctx, req.(*UpdatePostProcessingProfileRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _ReportingAPIService_DeletePostProcessingProfile_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(DeletePostProcessingProfileRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ReportingAPIServiceServer).DeletePostProcessingProfile(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: ReportingAPIService_DeletePostProcessingProfile_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ReportingAPIServiceServer).DeletePostProcessingProfile(ctx, req.(*DeletePostProcessingProfileRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _ReportingAPIService_ExportPostProcessingProfile_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ExportPostProcessingProfileRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ReportingAPIServiceServer).ExportPostProcessingProfile(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: ReportingAPIService_ExportPostProcessingProfile_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ReportingAPIServiceServer).ExportPostProcessingProfile(ctx, req.(*ExportPostProcessingProfileRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _ReportingAPIService_ImportPostProcessingProfile_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ImportPostProcessingProfileRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ReportingAPIServiceServer).ImportPostProcessingProfile(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: ReportingAPIService_ImportPostProcessingProfile_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ReportingAPIServiceServer).ImportPostProcessingProfile(ctx, req.(*ImportPostProcessingProfileRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _ReportingAPIService_GetPostProcessingProfileHistory_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetPostProcessingProfileHistoryRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ReportingAPIServiceServer).GetPostProcessingProfileHistory(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: ReportingAPIService_GetPostProcessingProfileHistory_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ReportingAPIServiceServer).GetPostProcessingProfileHistory(ctx, req.(*GetPostProcessingProfileHistoryRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // ReportingAPIService_ServiceDesc is the grpc.ServiceDesc for ReportingAPIService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -979,6 +1497,38 @@ var ReportingAPIService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "EvaluateTranscription",
 			Handler:    _ReportingAPIService_EvaluateTranscription_Handler,
+		},
+		{
+			MethodName: "CreatePostProcessingProfile",
+			Handler:    _ReportingAPIService_CreatePostProcessingProfile_Handler,
+		},
+		{
+			MethodName: "GetPostProcessingProfile",
+			Handler:    _ReportingAPIService_GetPostProcessingProfile_Handler,
+		},
+		{
+			MethodName: "GetPostProcessingProfiles",
+			Handler:    _ReportingAPIService_GetPostProcessingProfiles_Handler,
+		},
+		{
+			MethodName: "UpdatePostProcessingProfile",
+			Handler:    _ReportingAPIService_UpdatePostProcessingProfile_Handler,
+		},
+		{
+			MethodName: "DeletePostProcessingProfile",
+			Handler:    _ReportingAPIService_DeletePostProcessingProfile_Handler,
+		},
+		{
+			MethodName: "ExportPostProcessingProfile",
+			Handler:    _ReportingAPIService_ExportPostProcessingProfile_Handler,
+		},
+		{
+			MethodName: "ImportPostProcessingProfile",
+			Handler:    _ReportingAPIService_ImportPostProcessingProfile_Handler,
+		},
+		{
+			MethodName: "GetPostProcessingProfileHistory",
+			Handler:    _ReportingAPIService_GetPostProcessingProfileHistory_Handler,
 		},
 	},
 	Streams: []grpc.StreamDesc{
