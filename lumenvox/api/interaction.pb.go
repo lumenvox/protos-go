@@ -375,7 +375,8 @@ type InteractionRequestMessage_InteractionCreateSentiment struct {
 }
 
 type InteractionRequestMessage_InteractionCancel struct {
-	// Interaction cancel
+	// Interaction cancel.
+	// Deprecated: use interaction_close instead.
 	//
 	// Deprecated: Marked as deprecated in lumenvox/api/interaction.proto.
 	InteractionCancel *InteractionCancelRequest `protobuf:"bytes,100,opt,name=interaction_cancel,json=interactionCancel,proto3,oneof"`
@@ -2365,6 +2366,9 @@ func (x *InteractionRequestResultsResponse) GetInteractionResults() *Result {
 	return nil
 }
 
+// Deprecated: use InteractionCloseRequest instead.
+//
+// Deprecated: Marked as deprecated in lumenvox/api/interaction.proto.
 type InteractionCancelRequest struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
 	// The interaction object being referenced
@@ -2850,9 +2854,9 @@ const file_lumenvox_api_interaction_proto_rawDesc = "" +
 	"\x0einteraction_id\x18\x01 \x01(\tR\rinteractionId\"\x91\x01\n" +
 	"!InteractionRequestResultsResponse\x12%\n" +
 	"\x0einteraction_id\x18\x01 \x01(\tR\rinteractionId\x12E\n" +
-	"\x13interaction_results\x18\x02 \x01(\v2\x14.lumenvox.api.ResultR\x12interactionResults\"A\n" +
+	"\x13interaction_results\x18\x02 \x01(\v2\x14.lumenvox.api.ResultR\x12interactionResults\"E\n" +
 	"\x18InteractionCancelRequest\x12%\n" +
-	"\x0einteraction_id\x18\x01 \x01(\tR\rinteractionId\"y\n" +
+	"\x0einteraction_id\x18\x01 \x01(\tR\rinteractionId:\x02\x18\x01\"y\n" +
 	"\x19InteractionCancelResponse\x12%\n" +
 	"\x0einteraction_id\x18\x01 \x01(\tR\rinteractionId\x125\n" +
 	"\fclose_status\x18\x02 \x01(\v2\x12.google.rpc.StatusR\vcloseStatus\"@\n" +

@@ -209,7 +209,8 @@ type SessionRequestMessage_SessionLoadPhraseList struct {
 }
 
 type SessionRequestMessage_SessionCancel struct {
-	// Explicit request to cancel all session related interactions and processing in progress
+	// Explicit request to cancel all session related interactions and processing in progress.
+	// Deprecated: use session_close instead.
 	//
 	// Deprecated: Marked as deprecated in lumenvox/api/session.proto.
 	SessionCancel *SessionCancelRequest `protobuf:"bytes,9,opt,name=session_cancel,json=sessionCancel,proto3,oneof"`
@@ -1130,6 +1131,9 @@ func (x *SessionCloseResponse) GetCloseStatus() *status.Status {
 	return nil
 }
 
+// Deprecated: use SessionCloseRequest instead.
+//
+// Deprecated: Marked as deprecated in lumenvox/api/session.proto.
 type SessionCancelRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	unknownFields protoimpl.UnknownFields
@@ -1622,8 +1626,8 @@ const file_lumenvox_api_session_proto_rawDesc = "" +
 	"operatorId\"\x15\n" +
 	"\x13SessionCloseRequest\"M\n" +
 	"\x14SessionCloseResponse\x125\n" +
-	"\fclose_status\x18\x01 \x01(\v2\x12.google.rpc.StatusR\vcloseStatus\"\x16\n" +
-	"\x14SessionCancelRequest\"N\n" +
+	"\fclose_status\x18\x01 \x01(\v2\x12.google.rpc.StatusR\vcloseStatus\"\x1a\n" +
+	"\x14SessionCancelRequest:\x02\x18\x01\"N\n" +
 	"\x15SessionCancelResponse\x125\n" +
 	"\fclose_status\x18\x01 \x01(\v2\x12.google.rpc.StatusR\vcloseStatus\"\x1b\n" +
 	"\x19SessionGetSettingsRequest\"\x98\x02\n" +
